@@ -258,7 +258,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <p class="modal-title">원고 추가</p>
     <input type="text" id="ms-title-input" placeholder="원고 제목">
     <input type="text" id="ms-client-input" placeholder="클라이언트명">
-    <input type="number" id="ms-price-input" placeholder="금액 (원)" oninput="updateDeducted()">
+    <div style="display:flex;gap:10px;">
+      <input type="number" id="ms-price-input" placeholder="건당 금액 (원)" oninput="updateDeducted()" style="flex:2;margin-bottom:12px;">
+      <input type="number" id="ms-count-input" placeholder="건수" min="1" style="flex:1;margin-bottom:12px;">
+    </div>
+    <p class="modal-label">납기일</p>
+    <input type="date" id="ms-deadline-input" style="margin-bottom:12px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
       <div style="display:flex;align-items:center;gap:8px;">
         <button id="deduct-btn" class="spill" onclick="toggleDeduct()" style="margin:0;">3.3% 공제</button>
@@ -408,7 +413,8 @@ function renderMs(){
     ${items.map(m=>`<div class="ms-item">
       <div class="ms-row1"><span class="ms-title">${m.title}</span><span class="tag tag-${m.status}">${statusLabel(m.status)}</span></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span class="ms-sub">${(m.createdAt||'').slice(0,10)}${m.deducted?' · 3.3%공제':''}</span>
+        <span class="ms-sub">${(m.createdAt||'').slice(0,10)}${m.deducted?' · 3.3%공제':''}${m.count>1?' · '+m.count+'건':''}</span>
+        ${m.deadline?`<span class="ms-sub" style="color:${new Date(m.deadline)<new Date()?'#A32D2D':'#888'};">납기 ${m.deadline}</span>`:''}
         <div style="display:flex;align-items:center;gap:8px;">
           <span class="ms-sub" style="font-weight:500;">${fmt(m.price||0)}</span>
           <button class="delete-btn" onclick="deleteMs('${m.id}')"><i class="ti ti-x"></i></button>
@@ -417,11 +423,30 @@ function renderMs(){
     </div>`).join('')}</div><div class="divider"></div>`).join('');
 }
 function statusLabel(s){return{wip:'작성중',done:'납품완료',unpaid:'미수금',paid:'정산완료'}[s]||s;}
-function openMsModal(){state.msStatus='wip';state.msDeduct=false;document.getElementById('ms-title-input').value='';document.getElementById('ms-client-input').value='';document.getElementById('ms-price-input').value='';document.getElementById('deduct-btn').classList.remove('sel-done');document.getElementById('deducted-preview').style.display='none';document.querySelectorAll('#ms-status-pills .spill').forEach((p,i)=>{p.classList.remove('sel-todo','sel-hold','sel-done');if(i===0)p.classList.add('sel-todo');});document.getElementById('modal-ms').classList.add('open');}
+function openMsModal(){state.msStatus='wip';state.msDeduct=false;document.getElementById('ms-title-input').value='';document.getElementById('ms-client-input').value='';document.getElementById('ms-price-input').value='';document.getElementById('ms-count-input').value='';document.getElementById('ms-deadline-input').value='';document.getElementById('deduct-btn').classList.remove('sel-done');document.getElementById('deducted-preview').style.display='none';document.querySelectorAll('#ms-status-pills .spill').forEach((p,i)=>{p.classList.remove('sel-todo','sel-hold','sel-done');if(i===0)p.classList.add('sel-todo');});document.getElementById('modal-ms').classList.add('open');}
 function toggleDeduct(){state.msDeduct=!state.msDeduct;const btn=document.getElementById('deduct-btn');state.msDeduct?btn.classList.add('sel-done'):btn.classList.remove('sel-done');updateDeducted();}
-function updateDeducted(){const price=parseInt(document.getElementById('ms-price-input').value)||0;const preview=document.getElementById('deducted-preview');if(state.msDeduct&&price>0){const net=Math.round(price*0.967);preview.textContent=`→ 실수령 ${net.toLocaleString('ko-KR')}원`;preview.style.display='';}else{preview.style.display='none';}}
+function updateDeducted(){
+  const price=parseInt(document.getElementById('ms-price-input').value)||0;
+  const count=parseInt(document.getElementById('ms-count-input').value)||1;
+  const total=price*count;
+  const preview=document.getElementById('deducted-preview');
+  if(state.msDeduct&&total>0){const net=Math.round(total*0.967);preview.textContent=`→ 실수령 ${net.toLocaleString('ko-KR')}원 (${count}건)`;preview.style.display='';}
+  else if(!state.msDeduct&&total>0&&count>1){preview.textContent=`→ 합계 ${total.toLocaleString('ko-KR')}원 (${count}건)`;preview.style.display='';}
+  else{preview.style.display='none';}
+}
 function selectMsStatus(s,el){state.msStatus=s;document.querySelectorAll('#ms-status-pills .spill').forEach(p=>p.classList.remove('sel-todo','sel-hold','sel-done'));el.classList.add(s==='wip'?'sel-todo':s==='unpaid'?'sel-hold':'sel-done');}
-function saveMs(){const title=document.getElementById('ms-title-input').value.trim();const client=document.getElementById('ms-client-input').value.trim();const rawPrice=parseInt(document.getElementById('ms-price-input').value)||0;const price=state.msDeduct?Math.round(rawPrice*0.967):rawPrice;if(!title||!client)return;state.manuscripts.push({id:uid(),title,client,price,rawPrice,deducted:state.msDeduct,status:state.msStatus,createdAt:new Date().toISOString()});saveState();closeModal('modal-ms');renderMs();}
+function saveMs(){
+  const title=document.getElementById('ms-title-input').value.trim();
+  const client=document.getElementById('ms-client-input').value.trim();
+  const rawPrice=parseInt(document.getElementById('ms-price-input').value)||0;
+  const count=parseInt(document.getElementById('ms-count-input').value)||1;
+  const deadline=document.getElementById('ms-deadline-input').value;
+  const totalRaw=rawPrice*count;
+  const price=state.msDeduct?Math.round(totalRaw*0.967):totalRaw;
+  if(!title||!client)return;
+  state.manuscripts.push({id:uid(),title,client,price,rawPrice,count,deadline,deducted:state.msDeduct,status:state.msStatus,createdAt:new Date().toISOString()});
+  saveState();closeModal('modal-ms');renderMs();
+}
 function deleteMs(id){state.manuscripts=state.manuscripts.filter(x=>x.id!==id);saveState();renderMs();}
 
 // 타임트래커
