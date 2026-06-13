@@ -148,7 +148,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="summary-card purple">
       <p class="summary-top purple">이번 달 고정 수입</p>
       <div class="summary-nums">
-        <div class="snum"><span class="snum-label">월 급여</span><span class="snum-value purple" id="yiyu-salary">-</span></div>
+        <div class="snum"><span class="snum-label">월 급여</span><span class="snum-value purple" id="yiyu-salary">1,643,900원</span></div>
       </div>
     </div>
     <div class="inner-tabs">
@@ -258,7 +258,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <p class="modal-title">원고 추가</p>
     <input type="text" id="ms-title-input" placeholder="원고 제목">
     <input type="text" id="ms-client-input" placeholder="클라이언트명">
-    <input type="number" id="ms-price-input" placeholder="금액 (원)">
+    <input type="number" id="ms-price-input" placeholder="금액 (원)" oninput="updateDeducted()">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button id="deduct-btn" class="spill" onclick="toggleDeduct()" style="margin:0;">3.3% 공제</button>
+        <span id="deducted-preview" style="font-size:12px;color:#534AB7;display:none;"></span>
+      </div>
+    </div>
     <p class="modal-label">상태</p>
     <div class="status-pills" id="ms-status-pills">
       <button class="spill sel-todo" onclick="selectMsStatus('wip',this)">작성중</button>
@@ -402,7 +408,7 @@ function renderMs(){
     ${items.map(m=>`<div class="ms-item">
       <div class="ms-row1"><span class="ms-title">${m.title}</span><span class="tag tag-${m.status}">${statusLabel(m.status)}</span></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span class="ms-sub">${(m.createdAt||'').slice(0,10)}</span>
+        <span class="ms-sub">${(m.createdAt||'').slice(0,10)}${m.deducted?' · 3.3%공제':''}</span>
         <div style="display:flex;align-items:center;gap:8px;">
           <span class="ms-sub" style="font-weight:500;">${fmt(m.price||0)}</span>
           <button class="delete-btn" onclick="deleteMs('${m.id}')"><i class="ti ti-x"></i></button>
@@ -411,9 +417,11 @@ function renderMs(){
     </div>`).join('')}</div><div class="divider"></div>`).join('');
 }
 function statusLabel(s){return{wip:'작성중',done:'납품완료',unpaid:'미수금',paid:'정산완료'}[s]||s;}
-function openMsModal(){state.msStatus='wip';document.getElementById('ms-title-input').value='';document.getElementById('ms-client-input').value='';document.getElementById('ms-price-input').value='';document.querySelectorAll('#ms-status-pills .spill').forEach((p,i)=>{p.classList.remove('sel-todo','sel-hold','sel-done');if(i===0)p.classList.add('sel-todo');});document.getElementById('modal-ms').classList.add('open');}
+function openMsModal(){state.msStatus='wip';state.msDeduct=false;document.getElementById('ms-title-input').value='';document.getElementById('ms-client-input').value='';document.getElementById('ms-price-input').value='';document.getElementById('deduct-btn').classList.remove('sel-done');document.getElementById('deducted-preview').style.display='none';document.querySelectorAll('#ms-status-pills .spill').forEach((p,i)=>{p.classList.remove('sel-todo','sel-hold','sel-done');if(i===0)p.classList.add('sel-todo');});document.getElementById('modal-ms').classList.add('open');}
+function toggleDeduct(){state.msDeduct=!state.msDeduct;const btn=document.getElementById('deduct-btn');state.msDeduct?btn.classList.add('sel-done'):btn.classList.remove('sel-done');updateDeducted();}
+function updateDeducted(){const price=parseInt(document.getElementById('ms-price-input').value)||0;const preview=document.getElementById('deducted-preview');if(state.msDeduct&&price>0){const net=Math.round(price*0.967);preview.textContent=`→ 실수령 ${net.toLocaleString('ko-KR')}원`;preview.style.display='';}else{preview.style.display='none';}}
 function selectMsStatus(s,el){state.msStatus=s;document.querySelectorAll('#ms-status-pills .spill').forEach(p=>p.classList.remove('sel-todo','sel-hold','sel-done'));el.classList.add(s==='wip'?'sel-todo':s==='unpaid'?'sel-hold':'sel-done');}
-function saveMs(){const title=document.getElementById('ms-title-input').value.trim();const client=document.getElementById('ms-client-input').value.trim();const price=parseInt(document.getElementById('ms-price-input').value)||0;if(!title||!client)return;state.manuscripts.push({id:uid(),title,client,price,status:state.msStatus,createdAt:new Date().toISOString()});saveState();closeModal('modal-ms');renderMs();}
+function saveMs(){const title=document.getElementById('ms-title-input').value.trim();const client=document.getElementById('ms-client-input').value.trim();const rawPrice=parseInt(document.getElementById('ms-price-input').value)||0;const price=state.msDeduct?Math.round(rawPrice*0.967):rawPrice;if(!title||!client)return;state.manuscripts.push({id:uid(),title,client,price,rawPrice,deducted:state.msDeduct,status:state.msStatus,createdAt:new Date().toISOString()});saveState();closeModal('modal-ms');renderMs();}
 function deleteMs(id){state.manuscripts=state.manuscripts.filter(x=>x.id!==id);saveState();renderMs();}
 
 // 타임트래커
