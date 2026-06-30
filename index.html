@@ -78,9 +78,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .timeline-wrap{display:flex;overflow-y:auto;max-height:500px;}
 .time-col{width:38px;flex-shrink:0;display:flex;flex-direction:column;}
 .time-slot-label{height:80px;font-size:10px;color:#bbb;text-align:right;padding-right:8px;padding-top:4px;}
-.blocks-col{flex:1;position:relative;border-left:0.5px solid rgba(0,0,0,0.1);}
-.hour-slot{height:80px;border-bottom:0.5px solid rgba(0,0,0,0.07);position:relative;}
+.blocks-col{width:100%;display:flex;flex-direction:column;border-left:0.5px solid rgba(0,0,0,0.1);}
+.hour-slot{height:80px;border-bottom:0.5px solid rgba(0,0,0,0.07);}
 .hour-slot:last-child{border-bottom:none;}
+.blocks-layer{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;}
+.blocks-layer .tblock{pointer-events:all;}
 .tblock{position:absolute;left:4px;right:4px;border-radius:6px;padding:4px 8px;overflow:hidden;cursor:pointer;}
 .tblock-title{font-size:11px;font-weight:500;line-height:1.3;}
 .tblock-sub{font-size:10px;margin-top:1px;opacity:0.8;}
@@ -191,7 +193,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <button class="add-time-btn" onclick="openTimeModal()">+ 일정 추가</button>
     <div class="timeline-wrap">
       <div class="time-col" id="time-labels"></div>
-      <div class="blocks-col" id="blocks-col"></div>
+      <div style="flex:1;position:relative;">
+        <div class="blocks-col" id="hours-col"></div>
+        <div class="blocks-layer" id="blocks-col"></div>
+      </div>
     </div>
   </div>
   <nav class="bottom-nav">
@@ -548,12 +553,13 @@ function renderTime(){
   const dt=new Date(state.currentDay);
   document.getElementById('time-date-label').textContent=`${dt.getMonth()+1}월 ${dt.getDate()}일 ${days[dt.getDay()]}`;
   const labelsEl=document.getElementById('time-labels');
+  const hoursEl=document.getElementById('hours-col');
   const blocksEl=document.getElementById('blocks-col');
-  labelsEl.innerHTML='';blocksEl.innerHTML='';
+  labelsEl.innerHTML='';hoursEl.innerHTML='';blocksEl.innerHTML='';
   for(let h=START_HOUR;h<=END_HOUR;h++){
     const lbl=document.createElement('div');lbl.className='time-slot-label';
     lbl.textContent=h<12?h+'am':h===12?'12pm':(h-12)+'pm';labelsEl.appendChild(lbl);
-    const slot=document.createElement('div');slot.className='hour-slot';blocksEl.appendChild(slot);
+    const slot=document.createElement('div');slot.className='hour-slot';hoursEl.appendChild(slot);
   }
   let usedMins=0;
   (state.timeBlocks||[]).forEach(b=>{
