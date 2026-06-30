@@ -38,6 +38,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tag-hold{background:#FAEEDA;color:#854F0B;}
 .tag-done{background:#EAF3DE;color:#3B6D11;}
 .tag-unpaid{background:#FCEBEB;color:#A32D2D;}
+.tag-urgent{background:#FCEBEB;color:#A32D2D;}
 .tag-paid{background:#EAF3DE;color:#3B6D11;}
 .tag-wip{background:#FAEEDA;color:#854F0B;}
 .empty{text-align:center;color:#bbb;font-size:13px;padding:32px 0;}
@@ -403,8 +404,7 @@ function renderYiyu(){
   active.innerHTML=activeItems.length?activeItems.map(t=>`<div class="todo-item">
     <button class="check-btn" onclick="toggleYiyu('${t.id}')"></button>
     <span class="todo-text">${t.text}</span>
-    ${t.urgent?'<span class="tag" style="background:#FCEBEB;color:#A32D2D;">🔥 급구</span>':''}
-    <span class="tag ${t.status==='todo'?'tag-todo':t.status==='hold'?'tag-hold':'tag-done'}">${t.status==='todo'?'진행중':t.status==='hold'?'보류':'완료'}</span>
+    <span class="tag ${yiyuTagClass(t)}" style="cursor:pointer;" onclick="cycleYiyuStatus('${t.id}','${t.status}',${!!t.urgent})">${yiyuTagLabel(t)}</span>
     <button class="delete-btn" onclick="deleteYiyu('${t.id}')"><i class="ti ti-x"></i></button>
   </div>`).join(''):'<p class="empty">진행 중인 업무가 없어요</p>';
   done.innerHTML=doneItems.length?doneItems.map(t=>`<div class="todo-item">
@@ -414,6 +414,17 @@ function renderYiyu(){
     <button class="delete-btn" onclick="deleteYiyu('${t.id}')"><i class="ti ti-x"></i></button>
   </div>`).join(''):'<p class="empty">완료된 업무가 없어요</p>';
   if(state.yiyuTab==='monthly')renderYiyuMonthly();
+}
+function yiyuTagLabel(t){if(t.urgent)return'🔥 급구';return t.status==='hold'?'보류':'진행중';}
+function yiyuTagClass(t){if(t.urgent)return'tag-urgent';if(t.status==='hold')return'tag-hold';return'tag-todo';}
+async function cycleYiyuStatus(id,curStatus,curUrgent){
+  // 순서: 진행중(urgent=false,status=todo) -> 보류(urgent=false,status=hold) -> 급구(urgent=true,status=todo) -> 다시 진행중
+  let nextStatus,nextUrgent;
+  if(!curUrgent&&curStatus==='todo'){nextStatus='hold';nextUrgent=false;}
+  else if(!curUrgent&&curStatus==='hold'){nextStatus='todo';nextUrgent=true;}
+  else{nextStatus='todo';nextUrgent=false;}
+  await db('yiyu_tasks','PATCH',{status:nextStatus,urgent:nextUrgent},`?id=eq.${id}`);
+  loadAndRenderYiyu();
 }
 function renderYiyuMonthly(){
   const container=document.getElementById('yiyu-monthly-list');
