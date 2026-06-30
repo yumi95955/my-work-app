@@ -75,12 +75,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .legend{display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
 .leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#888;}
 .leg-dot{width:8px;height:8px;border-radius:2px;}
-.timeline-wrap{display:flex;overflow-y:auto;max-height:360px;}
+.timeline-wrap{display:flex;overflow-y:auto;max-height:500px;}
 .time-col{width:38px;flex-shrink:0;display:flex;flex-direction:column;}
-.time-slot-label{height:56px;font-size:10px;color:#bbb;text-align:right;padding-right:8px;transform:translateY(-7px);}
+.time-slot-label{height:80px;font-size:10px;color:#bbb;text-align:right;padding-right:8px;transform:translateY(-7px);}
 .time-slot-label:first-child{transform:none;}
 .blocks-col{flex:1;position:relative;border-left:0.5px solid rgba(0,0,0,0.1);}
-.hour-slot{height:56px;border-bottom:0.5px solid rgba(0,0,0,0.07);position:relative;}
+.hour-slot{height:80px;border-bottom:0.5px solid rgba(0,0,0,0.07);position:relative;}
 .hour-slot:last-child{border-bottom:none;}
 .tblock{position:absolute;left:4px;right:4px;border-radius:6px;padding:4px 8px;overflow:hidden;cursor:pointer;}
 .tblock-title{font-size:11px;font-weight:500;line-height:1.3;}
@@ -150,10 +150,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div class="snum"><span class="snum-label">월 급여</span><span class="snum-value purple">1,643,900원</span></div>
       </div>
     </div>
-    <div class="inner-tabs">
-      <button class="itab active" onclick="switchYiyuTab('tasks',this)">할 일</button>
-      <button class="itab" onclick="switchYiyuTab('monthly',this)">월별 정리</button>
-    </div>
     <div id="yiyu-tasks-view">
       <p class="section-label">진행 중 / 보류</p>
       <div class="todo-list" id="yiyu-active-list"></div>
@@ -161,7 +157,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <p class="section-label">완료</p>
       <div class="todo-list" id="yiyu-done-list"></div>
     </div>
-    <div id="yiyu-monthly-view" style="display:none;"><div id="yiyu-monthly-list"></div></div>
   </div>
   <div class="screen" id="screen-ms">
     <div class="screen-header">
@@ -222,7 +217,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button class="spill" id="routine-daily" onclick="selectRoutine('daily')">매일</button>
       <button class="spill" id="routine-weekly" onclick="selectRoutine('weekly')">매주</button>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
       <button id="urgent-btn" class="spill" onclick="toggleUrgent()" style="margin:0;">🔥 급구</button>
     </div>
     <div class="modal-btns">
@@ -241,7 +236,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button class="spill" onclick="selectYiyuStatus('hold',this)">보류</button>
       <button class="spill" onclick="selectYiyuStatus('done',this)">완료</button>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
       <button id="yiyu-urgent-btn" class="spill" onclick="toggleYiyuUrgent()" style="margin:0;">🔥 급구</button>
     </div>
     <div class="modal-btns">
@@ -254,7 +249,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="modal">
     <p class="modal-title">원고 추가</p>
     <input type="text" id="ms-title-input" placeholder="원고 제목">
-    <input type="text" id="ms-client-input" placeholder="클라이언트명">
+    <p class="modal-label">클라이언트</p>
+    <select id="ms-client-input">
+      <option value="">선택해주세요</option>
+      <option value="제이와이">제이와이</option>
+      <option value="그루">그루</option>
+      <option value="다퍼컴퍼니">다퍼컴퍼니</option>
+    </select>
     <div style="display:flex;gap:10px;">
       <input type="number" id="ms-price-input" placeholder="건당 금액 (원)" oninput="updateDeducted()" style="flex:2;margin-bottom:12px;">
       <input type="number" id="ms-count-input" placeholder="건수" min="1" oninput="updateDeducted()" style="flex:1;margin-bottom:12px;">
@@ -307,7 +308,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 const SUPABASE_URL='https://kkbynicqfziledbvgnei.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtrYnluaWNxZnppbGVkYnZnbmVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMTQzMzAsImV4cCI6MjA5Njg5MDMzMH0.DsNmtg3zJ9OJmh4RwUZoBVTaz1tWnJJLMyu4s9WyKyk';
 const H={'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY};
-
 async function db(table,method='GET',body=null,query=''){
   try{
     const r=await fetch(`${SUPABASE_URL}/rest/v1/${table}${query}`,{method,headers:{...H,'Prefer':method==='POST'?'return=representation':''},body:body?JSON.stringify(body):null});
@@ -317,30 +317,12 @@ async function db(table,method='GET',body=null,query=''){
     return t?JSON.parse(t):null;
   }catch(e){console.error('DB fetch failed',e);return null;}
 }
-
-const HOUR_H=56,START_HOUR=7,END_HOUR=23;
-let state={todos:[],yiyuTasks:[],manuscripts:[],timeBlocks:[],currentDay:new Date().toISOString().slice(0,10),todoTab:'today',yiyuTab:'tasks',todoType:'today',yiyuStatus:'todo',msStatus:'wip',timeType:'freelance',routine:'none',pickedTodo:null,msDeduct:false};
-
+const HOUR_H=80,START_HOUR=9,END_HOUR=22;
+let state={todos:[],yiyuTasks:[],manuscripts:[],timeBlocks:[],currentDay:new Date().toISOString().slice(0,10),todoTab:'today',yiyuTab:'tasks',todoType:'today',yiyuStatus:'todo',msStatus:'wip',timeType:'freelance',routine:'none',pickedTodo:null,msDeduct:false,urgent:false,yiyuUrgent:false};
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 function fmt(n){return n.toLocaleString('ko-KR')+'원';}
-
-function switchTab(tab,el){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('screen-'+tab).classList.add('active');
-  el.classList.add('active');
-  if(tab==='todo')loadAndRenderTodos();
-  if(tab==='yiyu')loadAndRenderYiyu();
-  if(tab==='ms')loadAndRenderMs();
-  if(tab==='time')loadAndRenderTime();
-}
-
-// 할 일
-async function loadAndRenderTodos(){
-  const data=await db('todos','GET',null,'?order=created_at.asc');
-  if(data)state.todos=data.map(t=>({id:t.id,text:t.text,type:t.type,routine:t.routine,done:t.done,urgent:t.urgent}));
-  renderTodos();
-}
+function switchTab(tab,el){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));document.getElementById('screen-'+tab).classList.add('active');el.classList.add('active');if(tab==='todo')loadAndRenderTodos();if(tab==='yiyu')loadAndRenderYiyu();if(tab==='ms')loadAndRenderMs();if(tab==='time')loadAndRenderTime();}
+async function loadAndRenderTodos(){const data=await db('todos','GET',null,'?order=created_at.asc');if(data)state.todos=data.map(t=>({id:t.id,text:t.text,type:t.type,routine:t.routine,done:t.done,urgent:t.urgent}));renderTodos();}
 function switchTodoTab(tab,el){state.todoTab=tab;document.querySelectorAll('#screen-todo .itab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderTodos();}
 function renderTodos(){
   const list=document.getElementById('todo-list');
@@ -353,58 +335,33 @@ function renderTodos(){
   list.innerHTML=items.map(t=>`<div class="todo-item">
     <button class="check-btn ${t.done?'done':''}" onclick="toggleTodo('${t.id}',${t.done})"></button>
     <span class="todo-text ${t.done?'done':''}" onclick="editTodoText('${t.id}','${(t.text||'').replace(/'/g,"\\'")}')">${t.text}</span>
-    ${t.urgent?'<span class="tag" style="background:#FCEBEB;color:#A32D2D;">🔥 급구</span>':''}
     ${t.routine==='daily'?'<span class="tag tag-daily">매일</span>':''}
     ${t.routine==='weekly'?'<span class="tag tag-weekly">매주</span>':''}
+    <span class="tag ${t.urgent?'tag-urgent':t.done?'tag-done':'tag-todo'}" style="cursor:pointer;" onclick="cycleTodoUrgent('${t.id}',${!!t.urgent},${!!t.done})">${t.urgent?'🔥 급구':t.done?'완료':'진행중'}</span>
     <button class="delete-btn" onclick="deleteTodo('${t.id}')"><i class="ti ti-x"></i></button>
   </div>`).join('');
 }
-async function editTodoText(id,oldText){
-  const newText=prompt('할 일 수정',oldText);
-  if(newText===null||!newText.trim()||newText===oldText)return;
-  await db('todos','PATCH',{text:newText.trim()},`?id=eq.${id}`);
-  loadAndRenderTodos();
-}
+async function cycleTodoUrgent(id,curUrgent,done){if(done)return;await db('todos','PATCH',{urgent:!curUrgent},`?id=eq.${id}`);loadAndRenderTodos();}
+async function editTodoText(id,oldText){const newText=prompt('할 일 수정',oldText);if(newText===null||!newText.trim()||newText===oldText)return;await db('todos','PATCH',{text:newText.trim()},`?id=eq.${id}`);loadAndRenderTodos();}
 function openTodoModal(){state.todoType='today';state.routine='none';state.urgent=false;document.getElementById('todo-input').value='';document.getElementById('urgent-btn').classList.remove('sel-hold');updateTodoTypePills();updateRoutinePills();document.getElementById('modal-todo').classList.add('open');}
 function toggleUrgent(){state.urgent=!state.urgent;const btn=document.getElementById('urgent-btn');state.urgent?btn.classList.add('sel-hold'):btn.classList.remove('sel-hold');}
 function selectTodoType(type){state.todoType=type;updateTodoTypePills();}
 function updateTodoTypePills(){document.querySelectorAll('#todo-type-pills .spill').forEach(p=>{p.classList.remove('sel-todo');if((p.textContent==='오늘'&&state.todoType==='today')||(p.textContent==='이번 달'&&state.todoType==='month'))p.classList.add('sel-todo');});}
 function selectRoutine(r){state.routine=r;updateRoutinePills();}
 function updateRoutinePills(){['none','daily','weekly'].forEach(r=>{const el=document.getElementById('routine-'+r);el.classList.remove('sel-todo');if(state.routine===r)el.classList.add('sel-todo');});}
-async function saveTodo(){
-  const text=document.getElementById('todo-input').value.trim();
-  if(!text)return;
-  const item={id:uid(),text,type:state.todoType,routine:state.routine,done:false,urgent:state.urgent};
-  await db('todos','POST',item);
-  closeModal('modal-todo');
-  loadAndRenderTodos();
-}
-async function toggleTodo(id,done){
-  await db('todos','PATCH',{done:!done},`?id=eq.${id}`);
-  loadAndRenderTodos();
-}
-async function deleteTodo(id){
-  await db('todos','DELETE',null,`?id=eq.${id}`);
-  loadAndRenderTodos();
-}
-
-// 이유
-async function loadAndRenderYiyu(){
-  const data=await db('yiyu_tasks','GET',null,'?order=created_at.asc');
-  if(data)state.yiyuTasks=data.map(t=>({id:t.id,text:t.text,status:t.status,urgent:t.urgent,createdAt:t.created_at}));
-  renderYiyu();
-}
-function switchYiyuTab(tab,el){state.yiyuTab=tab;document.querySelectorAll('#screen-yiyu .itab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.getElementById('yiyu-tasks-view').style.display=tab==='tasks'?'':'none';document.getElementById('yiyu-monthly-view').style.display=tab==='monthly'?'':'none';renderYiyu();}
+async function saveTodo(){const text=document.getElementById('todo-input').value.trim();if(!text)return;await db('todos','POST',{id:uid(),text,type:state.todoType,routine:state.routine,done:false,urgent:state.urgent});closeModal('modal-todo');loadAndRenderTodos();}
+async function toggleTodo(id,done){await db('todos','PATCH',{done:!done},`?id=eq.${id}`);loadAndRenderTodos();}
+async function deleteTodo(id){await db('todos','DELETE',null,`?id=eq.${id}`);loadAndRenderTodos();}
+async function loadAndRenderYiyu(){const data=await db('yiyu_tasks','GET',null,'?order=created_at.asc');if(data)state.yiyuTasks=data.map(t=>({id:t.id,text:t.text,status:t.status,urgent:t.urgent,createdAt:t.created_at}));renderYiyu();}
 function renderYiyu(){
   const active=document.getElementById('yiyu-active-list');
   const done=document.getElementById('yiyu-done-list');
-  let activeItems=state.yiyuTasks.filter(t=>t.status!=='done');
-  activeItems=[...activeItems].sort((a,b)=>(b.urgent?1:0)-(a.urgent?1:0));
+  let activeItems=[...state.yiyuTasks.filter(t=>t.status!=='done')].sort((a,b)=>(b.urgent?1:0)-(a.urgent?1:0));
   const doneItems=state.yiyuTasks.filter(t=>t.status==='done');
   active.innerHTML=activeItems.length?activeItems.map(t=>`<div class="todo-item">
     <button class="check-btn" onclick="toggleYiyu('${t.id}')"></button>
     <span class="todo-text">${t.text}</span>
-    <span class="tag ${yiyuTagClass(t)}" style="cursor:pointer;" onclick="cycleYiyuStatus('${t.id}','${t.status}',${!!t.urgent})">${yiyuTagLabel(t)}</span>
+    <span class="tag ${t.urgent?'tag-urgent':t.status==='hold'?'tag-hold':'tag-todo'}" style="cursor:pointer;" onclick="cycleYiyuStatus('${t.id}','${t.status}',${!!t.urgent})">${t.urgent?'🔥 급구':t.status==='hold'?'보류':'진행중'}</span>
     <button class="delete-btn" onclick="deleteYiyu('${t.id}')"><i class="ti ti-x"></i></button>
   </div>`).join(''):'<p class="empty">진행 중인 업무가 없어요</p>';
   done.innerHTML=doneItems.length?doneItems.map(t=>`<div class="todo-item">
@@ -413,12 +370,8 @@ function renderYiyu(){
     <span class="tag tag-done">완료</span>
     <button class="delete-btn" onclick="deleteYiyu('${t.id}')"><i class="ti ti-x"></i></button>
   </div>`).join(''):'<p class="empty">완료된 업무가 없어요</p>';
-  if(state.yiyuTab==='monthly')renderYiyuMonthly();
 }
-function yiyuTagLabel(t){if(t.urgent)return'🔥 급구';return t.status==='hold'?'보류':'진행중';}
-function yiyuTagClass(t){if(t.urgent)return'tag-urgent';if(t.status==='hold')return'tag-hold';return'tag-todo';}
 async function cycleYiyuStatus(id,curStatus,curUrgent){
-  // 순서: 진행중(urgent=false,status=todo) -> 보류(urgent=false,status=hold) -> 급구(urgent=true,status=todo) -> 다시 진행중
   let nextStatus,nextUrgent;
   if(!curUrgent&&curStatus==='todo'){nextStatus='hold';nextUrgent=false;}
   else if(!curUrgent&&curStatus==='hold'){nextStatus='todo';nextUrgent=true;}
@@ -426,61 +379,13 @@ async function cycleYiyuStatus(id,curStatus,curUrgent){
   await db('yiyu_tasks','PATCH',{status:nextStatus,urgent:nextUrgent},`?id=eq.${id}`);
   loadAndRenderYiyu();
 }
-function renderYiyuMonthly(){
-  const container=document.getElementById('yiyu-monthly-list');
-  const byMonth={};
-  state.yiyuTasks.filter(t=>t.status==='done').forEach(t=>{const m=(t.createdAt||'').slice(0,7);if(!byMonth[m])byMonth[m]=[];byMonth[m].push(t);});
-  const months=Object.keys(byMonth).sort().reverse();
-  if(!months.length){container.innerHTML='<p class="empty">완료된 업무가 없어요</p>';return;}
-  container.innerHTML=months.map(m=>`<div style="background:#f5f5f3;border-radius:10px;padding:12px 14px;margin-bottom:10px;">
-    <p style="font-size:11px;font-weight:500;color:#888;margin-bottom:8px;">${m.replace('-','년 ')}월</p>
-    ${byMonth[m].map(t=>`<div style="font-size:12px;color:#111;padding:3px 0;display:flex;gap:6px;"><span style="color:#bbb;">•</span>${t.text}</div>`).join('')}
-  </div>`).join('');
-}
-function openYiyuModal(){
-  state.yiyuStatus='todo';
-  state.yiyuUrgent=false;
-  document.getElementById('yiyu-input').value='';
-  document.getElementById('yiyu-urgent-btn').classList.remove('sel-hold');
-  document.querySelectorAll('#yiyu-status-pills .spill').forEach(p=>p.classList.remove('sel-todo','sel-hold','sel-done'));
-  document.querySelector('#yiyu-status-pills .spill').classList.add('sel-todo');
-  document.getElementById('modal-yiyu').classList.add('open');
-}
-function selectYiyuStatus(s,el){
-  state.yiyuStatus=s;
-  document.querySelectorAll('#yiyu-status-pills .spill').forEach(p=>p.classList.remove('sel-todo','sel-hold','sel-done'));
-  if(s==='todo')el.classList.add('sel-todo');
-  else if(s==='hold')el.classList.add('sel-hold');
-  else el.classList.add('sel-done');
-}
-function toggleYiyuUrgent(){
-  state.yiyuUrgent=!state.yiyuUrgent;
-  const btn=document.getElementById('yiyu-urgent-btn');
-  state.yiyuUrgent?btn.classList.add('sel-hold'):btn.classList.remove('sel-hold');
-}
-async function saveYiyu(){
-  const text=document.getElementById('yiyu-input').value.trim();
-  if(!text)return;
-  const result=await db('yiyu_tasks','POST',{id:uid(),text,status:state.yiyuStatus,urgent:state.yiyuUrgent});
-  if(!result){alert('저장에 실패했어요');return;}
-  closeModal('modal-yiyu');
-  loadAndRenderYiyu();
-}
-async function toggleYiyu(id){
-  const t=state.yiyuTasks.find(x=>x.id===id);
-  if(t){await db('yiyu_tasks','PATCH',{status:t.status==='done'?'todo':'done'},`?id=eq.${id}`);loadAndRenderYiyu();}
-}
-async function deleteYiyu(id){
-  await db('yiyu_tasks','DELETE',null,`?id=eq.${id}`);
-  loadAndRenderYiyu();
-}
-
-// 원고
-async function loadAndRenderMs(){
-  const data=await db('manuscripts','GET',null,'?order=created_at.asc');
-  if(data)state.manuscripts=data.map(m=>({id:m.id,title:m.title,client:m.client,price:m.price,rawPrice:m.raw_price,count:m.count,deadline:m.deadline,deducted:m.deducted,status:m.status,createdAt:m.created_at}));
-  renderMs();
-}
+function openYiyuModal(){state.yiyuStatus='todo';state.yiyuUrgent=false;document.getElementById('yiyu-input').value='';document.getElementById('yiyu-urgent-btn').classList.remove('sel-hold');document.querySelectorAll('#yiyu-status-pills .spill').forEach(p=>p.classList.remove('sel-todo','sel-hold','sel-done'));document.querySelector('#yiyu-status-pills .spill').classList.add('sel-todo');document.getElementById('modal-yiyu').classList.add('open');}
+function selectYiyuStatus(s,el){state.yiyuStatus=s;document.querySelectorAll('#yiyu-status-pills .spill').forEach(p=>p.classList.remove('sel-todo','sel-hold','sel-done'));if(s==='todo')el.classList.add('sel-todo');else if(s==='hold')el.classList.add('sel-hold');else el.classList.add('sel-done');}
+function toggleYiyuUrgent(){state.yiyuUrgent=!state.yiyuUrgent;const btn=document.getElementById('yiyu-urgent-btn');state.yiyuUrgent?btn.classList.add('sel-hold'):btn.classList.remove('sel-hold');}
+async function saveYiyu(){const text=document.getElementById('yiyu-input').value.trim();if(!text)return;const result=await db('yiyu_tasks','POST',{id:uid(),text,status:state.yiyuStatus,urgent:state.yiyuUrgent});if(!result){alert('저장에 실패했어요');return;}closeModal('modal-yiyu');loadAndRenderYiyu();}
+async function toggleYiyu(id){const t=state.yiyuTasks.find(x=>x.id===id);if(t){await db('yiyu_tasks','PATCH',{status:t.status==='done'?'todo':'done'},`?id=eq.${id}`);loadAndRenderYiyu();}}
+async function deleteYiyu(id){await db('yiyu_tasks','DELETE',null,`?id=eq.${id}`);loadAndRenderYiyu();}
+async function loadAndRenderMs(){const data=await db('manuscripts','GET',null,'?order=created_at.asc');if(data)state.manuscripts=data.map(m=>({id:m.id,title:m.title,client:m.client,price:m.price,rawPrice:m.raw_price,count:m.count,deadline:m.deadline,deducted:m.deducted,status:m.status,createdAt:m.created_at}));renderMs();}
 function renderMs(){
   const list=document.getElementById('ms-list');
   const thisMonth=new Date().toISOString().slice(0,7);
@@ -492,51 +397,16 @@ function renderMs(){
   if(!state.manuscripts.length){list.innerHTML='<p class="empty">+ 버튼으로 원고를 추가해보세요</p>';return;}
   const byClient={};
   state.manuscripts.forEach(m=>{if(!byClient[m.client])byClient[m.client]=[];byClient[m.client].push(m);});
-  list.innerHTML=Object.entries(byClient).map(([client,items])=>`
-    <div class="client-group"><p class="client-name">${client}</p>
-    ${items.map(m=>`<div class="ms-item">
-      <div class="ms-row1"><span class="ms-title">${m.title}</span><span class="tag tag-${m.status}">${statusLabel(m.status)}</span></div>
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div>
-          <span class="ms-sub">${(m.createdAt||'').slice(0,10)}${m.deducted?' · 3.3%공제':''}${m.count>1?' · '+m.count+'건':''}</span>
-          ${m.deadline?`<br><span class="ms-sub" style="color:${new Date(m.deadline)<new Date()?'#A32D2D':'#888'};">납기 ${m.deadline}</span>`:''}
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span class="ms-sub" style="font-weight:500;">${fmt(m.price||0)}</span>
-          <button class="delete-btn" onclick="deleteMs('${m.id}')"><i class="ti ti-x"></i></button>
-        </div>
-      </div>
-    </div>`).join('')}</div><div class="divider"></div>`).join('');
+  list.innerHTML=Object.entries(byClient).map(([client,items])=>`<div class="client-group"><p class="client-name">${client}</p>${items.map(m=>`<div class="ms-item"><div class="ms-row1"><span class="ms-title">${m.title}</span><span class="tag tag-${m.status}">${statusLabel(m.status)}</span></div><div style="display:flex;justify-content:space-between;align-items:center;"><div><span class="ms-sub">${(m.createdAt||'').slice(0,10)}${m.deducted?' · 3.3%공제':''}${m.count>1?' · '+m.count+'건':''}</span>${m.deadline?`<br><span class="ms-sub" style="color:${new Date(m.deadline)<new Date()?'#A32D2D':'#888'};">납기 ${m.deadline}</span>`:''}</div><div style="display:flex;align-items:center;gap:8px;"><span class="ms-sub" style="font-weight:500;">${fmt(m.price||0)}</span><button class="delete-btn" onclick="deleteMs('${m.id}')"><i class="ti ti-x"></i></button></div></div></div>`).join('')}</div><div class="divider"></div>`).join('');
 }
 function statusLabel(s){return{wip:'작성중',done:'납품완료',unpaid:'미수금',paid:'정산완료'}[s]||s;}
 function openMsModal(){state.msStatus='wip';state.msDeduct=false;document.getElementById('ms-title-input').value='';document.getElementById('ms-client-input').value='';document.getElementById('ms-price-input').value='';document.getElementById('ms-count-input').value='';document.getElementById('ms-deadline-input').value='';document.getElementById('deduct-btn').classList.remove('sel-done');document.getElementById('deducted-preview').style.display='none';document.querySelectorAll('#ms-status-pills .spill').forEach((p,i)=>{p.classList.remove('sel-todo','sel-hold','sel-done');if(i===0)p.classList.add('sel-todo');});document.getElementById('modal-ms').classList.add('open');}
 function toggleDeduct(){state.msDeduct=!state.msDeduct;const btn=document.getElementById('deduct-btn');state.msDeduct?btn.classList.add('sel-done'):btn.classList.remove('sel-done');updateDeducted();}
 function updateDeducted(){const price=parseInt(document.getElementById('ms-price-input').value)||0;const count=parseInt(document.getElementById('ms-count-input').value)||1;const total=price*count;const preview=document.getElementById('deducted-preview');if(state.msDeduct&&total>0){const net=Math.round(total*0.967);preview.textContent=`→ 실수령 ${net.toLocaleString('ko-KR')}원 (${count}건)`;preview.style.display='';}else if(!state.msDeduct&&total>0&&count>1){preview.textContent=`→ 합계 ${total.toLocaleString('ko-KR')}원 (${count}건)`;preview.style.display='';}else{preview.style.display='none';}}
 function selectMsStatus(s,el){state.msStatus=s;document.querySelectorAll('#ms-status-pills .spill').forEach(p=>p.classList.remove('sel-todo','sel-hold','sel-done'));el.classList.add(s==='wip'?'sel-todo':s==='unpaid'?'sel-hold':'sel-done');}
-async function saveMs(){
-  const title=document.getElementById('ms-title-input').value.trim();
-  const client=document.getElementById('ms-client-input').value.trim();
-  const rawPrice=parseInt(document.getElementById('ms-price-input').value)||0;
-  const count=parseInt(document.getElementById('ms-count-input').value)||1;
-  const deadline=document.getElementById('ms-deadline-input').value;
-  const totalRaw=rawPrice*count;
-  const price=state.msDeduct?Math.round(totalRaw*0.967):totalRaw;
-  if(!title||!client)return;
-  await db('manuscripts','POST',{id:uid(),title,client,price,raw_price:rawPrice,count,deadline:deadline||null,deducted:state.msDeduct,status:state.msStatus});
-  closeModal('modal-ms');
-  loadAndRenderMs();
-}
-async function deleteMs(id){
-  await db('manuscripts','DELETE',null,`?id=eq.${id}`);
-  loadAndRenderMs();
-}
-
-// 타임트래커
-async function loadAndRenderTime(){
-  const data=await db('time_blocks','GET',null,`?day=eq.${state.currentDay}&order=start_time.asc`);
-  if(data)state.timeBlocks=data.map(b=>({id:b.id,title:b.title,start:b.start_time,end:b.end_time,type:b.type}));
-  renderTime();
-}
+async function saveMs(){const title=document.getElementById('ms-title-input').value.trim();const client=document.getElementById('ms-client-input').value;const rawPrice=parseInt(document.getElementById('ms-price-input').value)||0;const count=parseInt(document.getElementById('ms-count-input').value)||1;const deadline=document.getElementById('ms-deadline-input').value;const totalRaw=rawPrice*count;const price=state.msDeduct?Math.round(totalRaw*0.967):totalRaw;if(!title||!client)return;await db('manuscripts','POST',{id:uid(),title,client,price,raw_price:rawPrice,count,deadline:deadline||null,deducted:state.msDeduct,status:state.msStatus});closeModal('modal-ms');loadAndRenderMs();}
+async function deleteMs(id){await db('manuscripts','DELETE',null,`?id=eq.${id}`);loadAndRenderMs();}
+async function loadAndRenderTime(){const data=await db('time_blocks','GET',null,`?day=eq.${state.currentDay}&order=start_time.asc`);if(data)state.timeBlocks=data.map(b=>({id:b.id,title:b.title,start:b.start_time,end:b.end_time,type:b.type}));renderTime();}
 function changeDay(d){const dt=new Date(state.currentDay);dt.setDate(dt.getDate()+d);state.currentDay=dt.toISOString().slice(0,10);loadAndRenderTime();}
 function renderTime(){
   const days=['일','월','화','수','목','금','토'];
@@ -562,7 +432,7 @@ function renderTime(){
     const height=(durMins/60)*HOUR_H-4;
     const blk=document.createElement('div');
     blk.className=`tblock ${b.type}`;
-    blk.style.cssText=`top:${top}px;height:${Math.max(height,20)}px;`;
+    blk.style.cssText=`top:${top}px;height:${Math.max(height,24)}px;`;
     blk.innerHTML=`<div class="tblock-title">${b.title}</div><div class="tblock-sub">${b.start} – ${b.end}</div>`;
     blk.onclick=()=>deleteTimeBlock(b.id);
     blocksEl.appendChild(blk);
@@ -579,48 +449,17 @@ function openTimeModal(){
   document.getElementById('time-end').value='10:00';
   document.querySelectorAll('#time-type-pills .spill').forEach((p,i)=>{p.classList.remove('sel-todo','sel-hold','sel-done');if(i===0)p.classList.add('sel-todo');});
   const pickList=document.getElementById('todo-pick-list');
-  const allTodos=[
-    ...state.todos.filter(t=>!t.done).map(t=>({id:t.id,text:t.text,src:'todo'})),
-    ...state.yiyuTasks.filter(t=>t.status!=='done').map(t=>({id:t.id,text:t.text,src:'yiyu'}))
-  ];
-  pickList.innerHTML=allTodos.length?allTodos.map(t=>`
-    <div class="todo-pick-item" id="pick-${t.id}" onclick="pickTodo('${t.id}','${t.text.replace(/'/g,"\\'")}','${t.src}')">
-      <span class="todo-pick-text">${t.text}</span>
-      <span style="font-size:10px;color:#aaa;margin-right:8px;">${t.src==='yiyu'?'이유':'할일'}</span>
-      <div class="todo-pick-check"></div>
-    </div>`).join(''):'<p style="font-size:12px;color:#bbb;padding:8px 0 4px;">등록된 할 일이 없어요</p>';
+  const allTodos=[...state.todos.filter(t=>!t.done).map(t=>({id:t.id,text:t.text,src:'todo'})),...state.yiyuTasks.filter(t=>t.status!=='done').map(t=>({id:t.id,text:t.text,src:'yiyu'}))];
+  pickList.innerHTML=allTodos.length?allTodos.map(t=>`<div class="todo-pick-item" id="pick-${t.id}" onclick="pickTodo('${t.id}','${t.text.replace(/'/g,"\\'")}','${t.src}')"><span class="todo-pick-text">${t.text}</span><span style="font-size:10px;color:#aaa;margin-right:8px;">${t.src==='yiyu'?'이유':'할일'}</span><div class="todo-pick-check"></div></div>`).join(''):'<p style="font-size:12px;color:#bbb;padding:8px 0 4px;">등록된 할 일이 없어요</p>';
   document.getElementById('modal-time').classList.add('open');
 }
-function pickTodo(id,text,src){
-  if(state.pickedTodo===id){state.pickedTodo=null;document.getElementById('time-title-input').value='';document.querySelectorAll('.todo-pick-item').forEach(el=>el.classList.remove('selected'));return;}
-  state.pickedTodo=id;
-  document.getElementById('time-title-input').value=text;
-  document.querySelectorAll('.todo-pick-item').forEach(el=>el.classList.remove('selected'));
-  document.getElementById('pick-'+id).classList.add('selected');
-  if(src==='yiyu'){selectTimeType('yiyu',document.querySelectorAll('#time-type-pills .spill')[1]);}
-  else{selectTimeType('freelance',document.querySelectorAll('#time-type-pills .spill')[0]);}
-}
+function pickTodo(id,text,src){if(state.pickedTodo===id){state.pickedTodo=null;document.getElementById('time-title-input').value='';document.querySelectorAll('.todo-pick-item').forEach(el=>el.classList.remove('selected'));return;}state.pickedTodo=id;document.getElementById('time-title-input').value=text;document.querySelectorAll('.todo-pick-item').forEach(el=>el.classList.remove('selected'));document.getElementById('pick-'+id).classList.add('selected');if(src==='yiyu'){selectTimeType('yiyu',document.querySelectorAll('#time-type-pills .spill')[1]);}else{selectTimeType('freelance',document.querySelectorAll('#time-type-pills .spill')[0]);}}
 function selectTimeType(t,el){state.timeType=t;document.querySelectorAll('#time-type-pills .spill').forEach(p=>p.classList.remove('sel-todo','sel-hold','sel-done'));el.classList.add(t==='freelance'?'sel-todo':t==='yiyu'?'sel-done':'sel-hold');}
-async function saveTimeBlock(){
-  const title=document.getElementById('time-title-input').value.trim();
-  const start=document.getElementById('time-start').value;
-  const end=document.getElementById('time-end').value;
-  if(!title||!start||!end||start>=end){alert('일정 이름과 시작/종료 시간을 확인해주세요');return;}
-  const result=await db('time_blocks','POST',{id:uid(),title,start_time:start,end_time:end,type:state.timeType,day:state.currentDay});
-  if(!result){alert('저장에 실패했어요. 잠시 후 다시 시도해주세요');return;}
-  closeModal('modal-time');
-  await loadAndRenderTime();
-}
-async function deleteTimeBlock(id){
-  if(!confirm('이 일정을 삭제할까요?'))return;
-  await db('time_blocks','DELETE',null,`?id=eq.${id}`);
-  loadAndRenderTime();
-}
+async function saveTimeBlock(){const title=document.getElementById('time-title-input').value.trim();const start=document.getElementById('time-start').value;const end=document.getElementById('time-end').value;if(!title||!start||!end||start>=end){alert('일정 이름과 시작/종료 시간을 확인해주세요');return;}const result=await db('time_blocks','POST',{id:uid(),title,start_time:start,end_time:end,type:state.timeType,day:state.currentDay});if(!result){alert('저장에 실패했어요');return;}closeModal('modal-time');await loadAndRenderTime();}
+async function deleteTimeBlock(id){if(!confirm('이 일정을 삭제할까요?'))return;await db('time_blocks','DELETE',null,`?id=eq.${id}`);loadAndRenderTime();}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-bg').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});});
-
 loadAndRenderTodos();
-renderTime();
 loadAndRenderTime();
 </script>
 </body>
